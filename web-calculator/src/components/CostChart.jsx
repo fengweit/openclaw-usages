@@ -1,55 +1,53 @@
-import './CostChart.css'
+import React from 'react';
+import './CostChart.css';
 
-function CostChart({ costs, currentProvider, maxCost }) {
-  // Use the most expensive cost for scaling, with a minimum to avoid division issues
-  const scaleMax = Math.max(maxCost, 1)
+function CostChart({ costs, currentProvider }) {
+  const maxCost = Math.max(...costs.map((c) => c.monthlyCost));
 
   return (
     <div className="cost-chart">
       {costs.map((cost) => {
-        const widthPercent = Math.max((cost.monthlyCost / scaleMax) * 100, 2)
-        const isCurrent = cost.modelKey === currentProvider
-        
-        // Color based on cost relative to max
-        const costRatio = cost.monthlyCost / scaleMax
-        let colorClass = 'bar-green'
-        if (costRatio > 0.6) colorClass = 'bar-red'
-        else if (costRatio > 0.2) colorClass = 'bar-yellow'
+        const width = maxCost > 0 ? (cost.monthlyCost / maxCost) * 100 : 0;
+        const isCurrent = cost.key === currentProvider;
 
         return (
-          <div 
-            key={cost.modelKey} 
-            className={`chart-row ${isCurrent ? 'current' : ''}`}
-          >
+          <div key={cost.key} className={`chart-row ${isCurrent ? 'current' : ''}`}>
             <div className="chart-label">
-              <span className="chart-model">{cost.model}</span>
-              <span className="chart-provider">{cost.provider}</span>
+              <span className="chart-model">{cost.name}</span>
+              <span className="chart-provider" style={{ color: cost.color }}>
+                {cost.provider}
+              </span>
             </div>
             <div className="chart-bar-container">
-              <div 
-                className={`chart-bar ${colorClass}`}
-                style={{ width: `${widthPercent}%` }}
-              >
-                <span className="chart-value">${cost.monthlyCost.toFixed(2)}</span>
-              </div>
+              <div
+                className="chart-bar"
+                style={{
+                  width: `${Math.max(width, 1)}%`,
+                  background: isCurrent
+                    ? 'var(--accent-orange)'
+                    : cost.tier === 'premium'
+                      ? 'var(--accent-red)'
+                      : cost.tier === 'standard'
+                        ? 'var(--accent-blue)'
+                        : cost.tier === 'budget'
+                          ? 'var(--accent-green)'
+                          : '#6b7280',
+                }}
+              />
+              <span className="chart-value">${cost.monthlyCost.toFixed(2)}</span>
             </div>
           </div>
-        )
+        );
       })}
-      
+
       <div className="chart-legend">
-        <span className="legend-item">
-          <span className="legend-dot bar-green"></span> Low cost
-        </span>
-        <span className="legend-item">
-          <span className="legend-dot bar-yellow"></span> Medium
-        </span>
-        <span className="legend-item">
-          <span className="legend-dot bar-red"></span> High cost
-        </span>
+        <span><span className="legend-dot" style={{ background: 'var(--accent-red)' }} /> Premium</span>
+        <span><span className="legend-dot" style={{ background: 'var(--accent-blue)' }} /> Standard</span>
+        <span><span className="legend-dot" style={{ background: 'var(--accent-green)' }} /> Budget</span>
+        <span><span className="legend-dot" style={{ background: 'var(--accent-orange)' }} /> Current</span>
       </div>
     </div>
-  )
+  );
 }
 
-export default CostChart
+export default CostChart;
