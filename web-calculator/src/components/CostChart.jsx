@@ -1,51 +1,60 @@
 import React from 'react';
+import {
+  BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid,
+} from 'recharts';
+import { fmtCost } from '../lib/api';
 import './CostChart.css';
 
-function CostChart({ costs, currentProvider }) {
-  const maxCost = Math.max(...costs.map((c) => c.monthlyCost));
+function CostChart({ dailyCosts }) {
+  const data = dailyCosts.map(d => ({
+    date: d.date.slice(5), // MM-DD
+    cost: parseFloat(d.cost.toFixed(2)),
+    fullDate: d.date,
+  }));
 
   return (
     <div className="cost-chart">
-      {costs.map((cost) => {
-        const width = maxCost > 0 ? (cost.monthlyCost / maxCost) * 100 : 0;
-        const isCurrent = cost.key === currentProvider;
-
-        return (
-          <div key={cost.key} className={`chart-row ${isCurrent ? 'current' : ''}`}>
-            <div className="chart-label">
-              <span className="chart-model">{cost.name}</span>
-              <span className="chart-provider" style={{ color: cost.color }}>
-                {cost.provider}
-              </span>
-            </div>
-            <div className="chart-bar-container">
-              <div
-                className="chart-bar"
-                style={{
-                  width: `${Math.max(width, 1)}%`,
-                  background: isCurrent
-                    ? 'var(--accent-orange)'
-                    : cost.tier === 'premium'
-                      ? 'var(--accent-red)'
-                      : cost.tier === 'standard'
-                        ? 'var(--accent-blue)'
-                        : cost.tier === 'budget'
-                          ? 'var(--accent-green)'
-                          : '#6b7280',
-                }}
-              />
-              <span className="chart-value">${cost.monthlyCost.toFixed(2)}</span>
-            </div>
-          </div>
-        );
-      })}
-
-      <div className="chart-legend">
-        <span><span className="legend-dot" style={{ background: 'var(--accent-red)' }} /> Premium</span>
-        <span><span className="legend-dot" style={{ background: 'var(--accent-blue)' }} /> Standard</span>
-        <span><span className="legend-dot" style={{ background: 'var(--accent-green)' }} /> Budget</span>
-        <span><span className="legend-dot" style={{ background: 'var(--accent-orange)' }} /> Current</span>
-      </div>
+      <ResponsiveContainer width="100%" height={280}>
+        <BarChart data={data} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
+          <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
+          <XAxis
+            dataKey="date"
+            tick={{ fill: '#9ca3af', fontSize: 11 }}
+            tickLine={false}
+            axisLine={{ stroke: 'rgba(255,255,255,0.1)' }}
+          />
+          <YAxis
+            tick={{ fill: '#9ca3af', fontSize: 11 }}
+            tickLine={false}
+            axisLine={false}
+            tickFormatter={(v) => `$${v}`}
+          />
+          <Tooltip
+            content={({ active, payload }) => {
+              if (!active || !payload?.length) return null;
+              const d = payload[0].payload;
+              return (
+                <div className="chart-tooltip">
+                  <div className="tooltip-date">{d.fullDate}</div>
+                  <div className="tooltip-cost">{fmtCost(d.cost)}</div>
+                </div>
+              );
+            }}
+          />
+          <Bar
+            dataKey="cost"
+            fill="url(#costGradient)"
+            radius={[4, 4, 0, 0]}
+            maxBarSize={40}
+          />
+          <defs>
+            <linearGradient id="costGradient" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#8b5cf6" />
+              <stop offset="100%" stopColor="#3b82f6" />
+            </linearGradient>
+          </defs>
+        </BarChart>
+      </ResponsiveContainer>
     </div>
   );
 }

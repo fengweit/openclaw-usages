@@ -18,7 +18,8 @@ function ProtectedRoute({ children }) {
     );
   }
 
-  if (!user) {
+  // If no Supabase configured, show dashboard anyway (local mode)
+  if (!user && import.meta.env.VITE_SUPABASE_URL) {
     return <Navigate to="/login" replace />;
   }
 
