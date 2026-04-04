@@ -1,64 +1,66 @@
-import React, { useState, useMemo } from 'react';
-import Calculator from './components/Calculator';
-import Results from './components/Results';
-import { calculateAllCosts, getRecommendation } from './lib/calculator';
+import React from 'react';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider, useAuth } from './lib/auth';
+import Landing from './pages/Landing';
+import Login from './pages/Login';
+import Signup from './pages/Signup';
+import AuthCallback from './pages/AuthCallback';
+import Dashboard from './pages/Dashboard';
 
-function App() {
-  const [inputs, setInputs] = useState({
-    messagesPerDay: 50,
-    messageLength: 'medium',
-    useCase: 'coding',
-    currentProvider: 'claude-sonnet',
-  });
+function ProtectedRoute({ children }) {
+  const { user, loading } = useAuth();
 
-  const results = useMemo(() => {
-    const tokensMap = { short: 500, medium: 2000, long: 5000 };
-    const tokensPerMessage = tokensMap[inputs.messageLength] || 2000;
-    const monthlyMessages = inputs.messagesPerDay * 30;
-    const monthlyTokens = monthlyMessages * tokensPerMessage;
-    const monthlyInput = Math.round(monthlyTokens * 0.4);
-    const monthlyOutput = Math.round(monthlyTokens * 0.6);
+  if (loading) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', color: '#9ca3af' }}>
+        Loading...
+      </div>
+    );
+  }
 
-    const costs = calculateAllCosts({ monthlyInput, monthlyOutput }, inputs.useCase);
-    const recommendation = getRecommendation(costs, inputs.currentProvider);
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
 
-    return {
-      costs,
-      recommendation,
-      monthlyTokens,
-      monthlyInput,
-      monthlyOutput,
-      monthlyMessages,
-    };
-  }, [inputs]);
+  return children;
+}
+
+function AppRoutes() {
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', color: '#9ca3af' }}>
+        Loading...
+      </div>
+    );
+  }
 
   return (
-    <div className="app">
-      <header className="header">
-        <div className="header-content">
-          <h1>⚡ OpenClaw Usage Calculator</h1>
-          <p className="subtitle">
-            Compare AI provider costs and find the cheapest option for your usage
-          </p>
-        </div>
-      </header>
+    <Routes>
+      <Route path="/" element={<Landing />} />
+      <Route path="/login" element={user ? <Navigate to="/dashboard" replace /> : <Login />} />
+      <Route path="/signup" element={user ? <Navigate to="/dashboard" replace /> : <Signup />} />
+      <Route path="/auth/callback" element={<AuthCallback />} />
+      <Route
+        path="/dashboard"
+        element={
+          <ProtectedRoute>
+            <Dashboard />
+          </ProtectedRoute>
+        }
+      />
+    </Routes>
+  );
+}
 
-      <main className="main">
-        <div className="container">
-          <Calculator inputs={inputs} onChange={setInputs} />
-          <Results results={results} currentProvider={inputs.currentProvider} />
-        </div>
-      </main>
-
-      <footer className="footer">
-        <p>
-          Built for the OpenClaw community · 
-          <a href="https://github.com/fengweit/openclaw-usages" target="_blank" rel="noopener">GitHub</a> · 
-          <a href="https://www.npmjs.com/package/openclaw-usage" target="_blank" rel="noopener">CLI Tool</a> · 
-          MIT License
-        </p>
-      </footer>
-    </div>
+function App() {
+  return (
+    <BrowserRouter>
+      <AuthProvider>
+        <AppRoutes />
+      </AuthProvider>
+    </BrowserRouter>
   );
 }
 

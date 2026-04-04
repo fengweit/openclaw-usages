@@ -2,159 +2,194 @@
 
 Understand exactly how you're using OpenClaw — real data, not guesswork.
 
-**Status:** POC (v0.1) — Web cost calculator live, CLI analyzer planned  
+**Status:** POC with auth system · Ready for Supabase connection  
+**Local:** `http://localhost:5055`  
 **Repo:** [github.com/fengweit/openclaw-usages](https://github.com/fengweit/openclaw-usages)
+
+---
+
+## Quick Start
+
+```bash
+cd web-calculator
+npm install
+cp .env.example .env   # Add your Supabase credentials
+npm run dev             # http://localhost:5055
+```
 
 ---
 
 ## What's Working Now
 
-### 🌐 Web Cost Calculator (POC)
+### 🌐 Web App (port 5055)
 
-A React app that lets you compare AI provider costs interactively.
+**Pages:**
 
-**URL:** `http://localhost:3000` (when dev server is running)
+| Route | What it does |
+|-------|-------------|
+| `/` | Landing page — hero, features, stats, waitlist email capture |
+| `/signup` | Create account — GitHub OAuth, Google OAuth, or email/password |
+| `/login` | Sign in — password or magic link, plus OAuth |
+| `/auth/callback` | Handles OAuth/magic link redirects |
+| `/dashboard` | Protected — cost calculator (requires login) |
 
-**Features:**
+**Auth features:**
+- GitHub OAuth login/signup
+- Google OAuth login/signup
+- Email + password signup/login
+- Magic link (passwordless) login
+- Auto profile creation on signup
+- Protected dashboard route
+- Session persistence
+
+**Calculator features (on dashboard):**
 - Interactive messages/day slider (5–500)
-- Message length toggle (short ~500 tokens / medium ~2K / long ~5K)
+- Message length toggle (short ~500 / medium ~2K / long ~5K tokens)
 - Use case selector (coding, chat, analysis, creative)
-- Current provider dropdown (9 models across Anthropic, OpenAI, Google)
+- Current provider dropdown (9 models)
 - Real-time cost comparison bar chart
-- Provider cards with quality scores and savings percentages
-- Hybrid routing preview (70% budget model + 30% premium model)
-- Dark theme, responsive layout
+- Provider cards with quality scores + savings %
+- Hybrid routing preview (Pro upsell)
 
-**How to run:**
-```bash
-cd web-calculator
-npm install
-npm run dev
-# Opens http://localhost:3000
-```
+**Landing page:**
+- Gradient hero with real stats (92% cache savings, $340→$16 hybrid)
+- 6 feature cards (3 free, 3 coming soon)
+- Email waitlist capture (writes to Supabase `waitlist` table)
+- CTA → signup flow
 
-**Limitations (POC):**
-- Based on estimated usage (user inputs), not real data
-- Quality scores are approximate
-- No data persistence
+### 💻 CLI Tool
 
-### 💻 CLI Tool (POC)
-
-A Node.js CLI with cost analysis and migration commands.
-
-**Commands available:**
 ```bash
 cd cli-tool && npm install
-
-# Compare costs across all providers
-node src/index.js optimize
-
-# Interactive migration wizard
-node src/index.js migrate
-
-# Usage statistics dashboard (demo data)
-node src/index.js stats
-
-# View/edit settings
-node src/index.js config
-
-# Rollback to previous config
-node src/index.js rollback
-
-# Pro tier upgrade flow
-node src/index.js upgrade
+node src/index.js optimize    # Compare costs across providers
+node src/index.js migrate     # Interactive migration wizard
+node src/index.js stats       # Usage dashboard (demo data)
+node src/index.js config      # View/edit settings
+node src/index.js rollback    # Restore previous config
+node src/index.js upgrade     # Pro tier flow
 ```
-
-**`optimize` command:**
-- Asks your current model, daily messages, message complexity
-- Shows cost comparison table across 9 models
-- Highlights cheapest option and best value
-- Shows hybrid routing savings estimate
-
-**`stats` command:**
-- Displays demo data dashboard (no real tracking yet)
-- Daily/weekly/monthly breakdown with cost trends
-- Model usage breakdown
-- Budget status
-
-**`migrate` command:**
-- Detects OpenClaw config at `~/.openclaw/config.yaml`
-- Interactive provider/model selection
-- Auto-backup before migration
-- Writes new config and validates
-
-### 📚 Documentation
-
-Full project documentation in `docs/`:
-
-| File | Contents |
-|------|----------|
-| `docs/01-CRISIS-ANALYSIS.md` | Crisis timeline, user segments, market size |
-| `docs/02-ARCHITECTURAL-GAPS.md` | 8 technical gaps = business opportunities |
-| `docs/03-PRODUCT-SPECS.md` | CLI and web calculator specifications |
-| `docs/04-REVENUE-MODEL.md` | 5 revenue streams with projections |
-| `docs/05-BUILD-PLAN.md` | 7-day build schedule |
-| `docs/06-LAUNCH-STRATEGY.md` | Reddit, Twitter, HN, Discord, YouTube launch plan |
-| `research/RESEARCH-SUMMARY.md` | Market research synthesis |
 
 ---
 
-## What's Next (V1 — Real Usage Analysis)
+## Setup: Supabase (Required for Auth)
 
-The POC uses estimated/hypothetical inputs. **V1 will parse your actual OpenClaw session data** instead.
+### 1. Create a Supabase project
 
-See [PLAN.md](./PLAN.md) for the full V1 specification.
+Go to [supabase.com](https://supabase.com) → New Project
 
-### The key insight
+### 2. Run the schema
 
-OpenClaw stores per-message usage in `~/.openclaw/agents/*/sessions/*.jsonl`:
-```json
-{
-  "type": "message",
-  "message": {
-    "role": "assistant",
-    "provider": "anthropic",
-    "model": "claude-opus-4-6",
-    "usage": {
-      "input": 3,
-      "output": 142,
-      "cacheRead": 0,
-      "cacheWrite": 23330,
-      "totalTokens": 23475,
-      "cost": { "total": 0.14937 }
-    }
-  }
-}
+Go to SQL Editor in your Supabase dashboard. Paste and run:
+
+```
+supabase/schema.sql
 ```
 
-V1 will parse this data to show:
-- **Actual spend** by model, by day, by session
-- **Cache efficiency** — how much caching is saving you
-- **What-if comparisons** — same real tokens priced on other providers
-- **Smart recommendations** — which queries could use cheaper models
+This creates:
+- `profiles` table (auto-created on signup via trigger)
+- `waitlist` table (email collection from landing page)
+- `usage_snapshots` table (for future usage data sync)
+- Row Level Security policies
+- Indexes
 
-### V1 Commands (planned)
+### 3. Enable OAuth providers
+
+In Supabase Dashboard → Authentication → Providers:
+
+**GitHub:**
+1. Go to [github.com/settings/developers](https://github.com/settings/developers) → New OAuth App
+2. Set callback URL: `https://<your-supabase-project>.supabase.co/auth/v1/callback`
+3. Copy Client ID + Secret → paste into Supabase GitHub provider settings
+
+**Google:**
+1. Go to [console.cloud.google.com](https://console.cloud.google.com) → Credentials → OAuth 2.0
+2. Set authorized redirect URI: `https://<your-supabase-project>.supabase.co/auth/v1/callback`
+3. Copy Client ID + Secret → paste into Supabase Google provider settings
+
+### 4. Add environment variables
 
 ```bash
-# Analyze your actual OpenClaw usage
-openclaw-usage analyze              # Last 30 days
-openclaw-usage analyze --days 7     # Last week
-openclaw-usage analyze --all-agents # All agents, not just main
-
-# Compare actual costs against alternatives
-openclaw-usage compare              # What-if on all providers
-openclaw-usage compare --model gpt-4o  # Specific model
-
-# Export raw data
-openclaw-usage export --format csv -o usage.csv
+cp web-calculator/.env.example web-calculator/.env
 ```
 
-### V1 Web Dashboard (planned)
+Edit `.env`:
+```
+VITE_SUPABASE_URL=https://your-project.supabase.co
+VITE_SUPABASE_ANON_KEY=eyJ...your-anon-key
+VITE_APP_URL=http://localhost:5055
+```
 
-- Drag & drop JSONL files (or auto-detect local path)
-- All processing client-side (no data leaves the browser)
-- Summary cards, model breakdown charts, daily trend bars
-- Interactive what-if comparison
+Find these in Supabase Dashboard → Settings → API.
+
+### 5. Test locally
+
+```bash
+cd web-calculator && npm run dev
+```
+
+Go to `http://localhost:5055/signup` → create an account → should land on dashboard.
+
+---
+
+## Deploy to Vercel
+
+```bash
+cd web-calculator
+
+# Install Vercel CLI
+npm i -g vercel
+
+# Deploy
+vercel
+
+# Set environment variables
+vercel env add VITE_SUPABASE_URL
+vercel env add VITE_SUPABASE_ANON_KEY
+vercel env add VITE_APP_URL
+
+# Deploy production
+vercel --prod
+```
+
+The `vercel.json` is already configured with SPA rewrites and security headers.
+
+After deploying, update:
+1. Supabase → Authentication → URL Configuration → Site URL = your Vercel URL
+2. Supabase → Authentication → URL Configuration → Redirect URLs → add your Vercel URL
+3. OAuth provider callback URLs (GitHub, Google) → add Vercel URL
+
+---
+
+## Database Schema
+
+```
+profiles
+├── id (UUID, from auth.users)
+├── email
+├── full_name
+├── plan (free/pro/premium)
+├── stripe_customer_id
+├── notification_prefs (JSONB)
+├── created_at
+└── updated_at
+
+waitlist
+├── id (UUID)
+├── email (unique)
+├── source (landing/cli/calculator)
+├── features (text[])
+└── created_at
+
+usage_snapshots
+├── id (UUID)
+├── user_id (→ profiles)
+├── period_start, period_end
+├── total_cost, total_messages
+├── total_input/output/cache tokens
+├── model_breakdown (JSONB)
+├── daily_costs (JSONB)
+└── created_at
+```
 
 ---
 
@@ -162,61 +197,59 @@ openclaw-usage export --format csv -o usage.csv
 
 ```
 openclaw-usages/
-├── README.md              ← You are here
-├── PLAN.md                ← V1 detailed specification
-├── cli-tool/              ← CLI tool (POC)
+├── README.md               ← You are here
+├── PLAN.md                 ← Product roadmap (3 phases)
+├── supabase/
+│   └── schema.sql          ← Run in Supabase SQL Editor
+├── web-calculator/
 │   ├── package.json
-│   ├── README.md
-│   └── src/
-│       ├── index.js       # Entry point (commander)
-│       ├── commands/
-│       │   ├── optimize.js   # Cost comparison
-│       │   ├── migrate.js    # Provider migration
-│       │   ├── stats.js      # Usage dashboard
-│       │   ├── rollback.js   # Config rollback
-│       │   ├── config.js     # Settings
-│       │   └── upgrade.js    # Pro tier
-│       └── lib/
-│           └── pricing.js    # Provider pricing data
-├── web-calculator/        ← Web app (POC)
-│   ├── package.json
-│   ├── vite.config.js
+│   ├── vite.config.js      ← Port 5055
+│   ├── vercel.json         ← Vercel deployment config
 │   ├── index.html
-│   ├── README.md
+│   ├── .env.example        ← Copy to .env, add Supabase keys
 │   └── src/
 │       ├── main.jsx
-│       ├── App.jsx + .css
+│       ├── App.jsx          ← Router + AuthProvider
+│       ├── App.css
 │       ├── lib/
-│       │   └── calculator.js  # Pricing & calculation logic
+│       │   ├── supabase.js  ← Supabase client
+│       │   ├── auth.jsx     ← AuthContext + hooks
+│       │   └── calculator.js← Pricing logic
+│       ├── pages/
+│       │   ├── Landing.jsx + .css   ← Public landing page
+│       │   ├── Login.jsx            ← Sign in (OAuth + email)
+│       │   ├── Signup.jsx           ← Create account
+│       │   ├── AuthCallback.jsx     ← OAuth redirect handler
+│       │   ├── Dashboard.jsx + .css ← Protected calculator
+│       │   └── Auth.css             ← Shared auth styles
 │       └── components/
-│           ├── Calculator.jsx + .css   # Input form
-│           ├── Results.jsx + .css      # Results container
-│           ├── ProviderCard.jsx + .css  # Provider cost cards
-│           └── CostChart.jsx + .css    # Bar chart
-├── docs/                  ← Project documentation
-│   ├── 01-CRISIS-ANALYSIS.md
-│   ├── 02-ARCHITECTURAL-GAPS.md
-│   ├── 03-PRODUCT-SPECS.md
-│   ├── 04-REVENUE-MODEL.md
-│   ├── 05-BUILD-PLAN.md
-│   └── 06-LAUNCH-STRATEGY.md
-└── research/
-    └── RESEARCH-SUMMARY.md
+│           ├── Calculator.jsx + .css
+│           ├── Results.jsx + .css
+│           ├── ProviderCard.jsx + .css
+│           └── CostChart.jsx + .css
+├── cli-tool/               ← CLI tool (existing)
+├── docs/                   ← Project documentation
+└── research/               ← Market research
 ```
 
-## Supported Providers (Pricing Data)
+---
 
-| Provider | Model | Input $/M | Output $/M | Tier |
-|----------|-------|-----------|------------|------|
-| Anthropic | Claude Opus 4 | $15.00 | $75.00 | Premium |
-| Anthropic | Claude Sonnet 4 | $3.00 | $15.00 | Standard |
-| Anthropic | Claude Haiku 3.5 | $0.25 | $1.25 | Budget |
-| OpenAI | GPT-4o | $2.50 | $10.00 | Standard |
-| OpenAI | GPT-4o Mini | $0.15 | $0.60 | Budget |
-| OpenAI | GPT-4 Turbo | $10.00 | $30.00 | Premium |
-| Google | Gemini 2.5 Pro | $1.25 | $5.00 | Standard |
-| Google | Gemini 2.0 Flash | $0.075 | $0.30 | Budget |
-| Google | Gemini Flash 8B | $0.0375 | $0.15 | Economy |
+## Roadmap
+
+| Phase | Feature | Status |
+|-------|---------|--------|
+| 1 | Landing page + auth | ✅ Done |
+| 1 | Cost calculator | ✅ Done |
+| 1 | Waitlist capture | ✅ Done |
+| 1 | Supabase schema | ✅ Done |
+| 1 | Vercel deploy config | ✅ Done |
+| 1 | Real usage data parser | 🔜 Next |
+| 2 | Smart model switching | 📋 Planned |
+| 2 | Stripe payments (Pro $9/mo) | 📋 Planned |
+| 3 | Prompt optimization | 📋 Planned |
+| 3 | Cost alerts via email | 📋 Planned |
+
+---
 
 ## License
 
