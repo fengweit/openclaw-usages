@@ -1,293 +1,268 @@
-# OpenClaw Usage Analyzer — V1 Plan
+# OpenClaw Usage Analyzer — Product Plan
 
-## Sharp Focus: Understand Your OpenClaw Usage
+## The Real Problem (Fei's experience, Apr 4 2026)
 
-**One job:** Parse your real OpenClaw session data, show you exactly what you're spending, and compare it against what you'd spend with other providers/models.
+**$11.29 spent in ~2 hours. 100% Claude Opus. 112 messages.**
 
-No hypotheticals. No "enter your estimated usage." **Real data from your actual sessions.**
+The data tells the story:
+- **Cache is saving 92%** — without it, today would cost $151.51
+- **Top 10 messages = 43% of total cost** — a few expensive turns dominate
+- **12pm hour: $9.15** — 76 messages, mostly cache writes (new context)
+- **Median message: $0.07** — most messages are cheap, but the expensive ones hurt
+- **What-if Gemini Flash: $0.75** (93% savings) vs **Haiku: $2.53** (78% savings)
 
----
-
-## The Data Source
-
-OpenClaw stores per-message usage in `~/.openclaw/agents/*/sessions/*.jsonl`:
-
-```json
-{
-  "type": "message",
-  "message": {
-    "role": "assistant",
-    "provider": "anthropic",
-    "model": "claude-opus-4-6",
-    "usage": {
-      "input": 3,           // input tokens (thousands? raw?)
-      "output": 142,         // output tokens
-      "cacheRead": 0,        // prompt cache hits
-      "cacheWrite": 23330,   // prompt cache writes
-      "totalTokens": 23475,
-      "cost": {
-        "input": 0.000015,
-        "output": 0.00355,
-        "cacheRead": 0,
-        "cacheWrite": 0.14581,
-        "total": 0.14937
-      }
-    },
-    "stopReason": "toolUse",
-    "timestamp": 1775327991849
-  }
-}
-```
-
-**This is everything we need.** Real models, real tokens, real costs, real timestamps.
+OpenClaw's dashboard already shows basic usage stats. **We build on top of that with actionable intelligence.**
 
 ---
 
-## V1 Architecture
+## Product Vision: 3 Phases
 
-### CLI Tool: `openclaw-usage analyze`
+### Phase 1: UNDERSTAND (Current Build — V1)
+> "Where is my money going?"
 
-**One command. One output. Sharp.**
+Parse real session data → show cost breakdown, distribution, what-if comparisons.
+**This is the free hook that gets people in the door.**
+
+### Phase 2: SWITCH (Next — V2)  
+> "Switch to the right model for each task"
+
+One-click model switching per session, smart routing recommendations, A/B cost tracking.
+**This is the Pro feature that saves real money.**
+
+### Phase 3: OPTIMIZE (Future — V3)
+> "Detect waste and fix it automatically"
+
+Prompt analysis (detect verbose/redundant context), auto-compact suggestions, smart caching strategies.
+**This is the premium tier — the silver bullet.**
+
+---
+
+## Phase 1: UNDERSTAND (V1 — Build Now)
+
+### What the existing OpenClaw dashboard has:
+- Date range filters
+- Tokens vs Cost toggle  
+- Activity by Time timeline
+- Daily Usage chart
+- Sessions list with token counts
+- Export
+
+### What's MISSING (our value-add):
+
+#### 1. Cost Distribution Intelligence
+- **Per-message cost histogram** — see that top 10 messages = 43% of spend
+- **Expensive message spotlight** — what were those $0.85 messages doing?
+- **Hourly cost heatmap** — see spending spikes in real-time
+- **Cache efficiency score** — "cache saved you 92% today" with trend
+
+#### 2. What-If Model Comparison  
+- **Same usage, different models** — actual token counts repriced on every provider
+- **Quality-adjusted comparison** — "Sonnet at $30/day gets you 90% of Opus quality"
+- **Hybrid routing simulation** — "route simple queries to Haiku, complex to Opus = $4/day"
+- **Monthly projection** — "$11/day × 30 = $340/mo on Opus vs $23/mo hybrid"
+
+#### 3. Session-Level Drill-Down
+- **Per-session cost ranking** — which sessions cost the most?
+- **Context growth curve** — see cache writes grow per session (the real cost driver)
+- **Optimal session length** — "sessions over 50 messages cost 3x due to context growth"
+- **Session comparison** — side-by-side cost/efficiency of different sessions
+
+---
+
+## V1 Feature Spec
+
+### CLI: `openclaw-usage analyze`
 
 ```
 $ openclaw-usage analyze
 
-⚡ OpenClaw Usage Report
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+⚡ OpenClaw Usage Report — Apr 4, 2026
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-📅 Period: Mar 2 – Apr 4, 2026 (33 days)
-📂 Sessions: 175 analyzed
+💰 TODAY: $11.29 across 112 messages (1 session)
+   Without cache: $151.51 — cache saving you 92%
+   Projected monthly: $339/month at this rate
 
-💰 TOTAL SPEND
-   Actual cost:     $47.82
-   Daily average:   $1.45/day
-   Projected month: $43.50/month
+🤖 MODEL MIX
+   claude-opus-4-6: 100% of spend ($11.29)
 
-🤖 MODEL BREAKDOWN
-┌────────────────────┬──────────┬────────────┬──────────┬─────────┐
-│ Model              │ Messages │ Tokens     │ Cost     │ % Spend │
-├────────────────────┼──────────┼────────────┼──────────┼─────────┤
-│ claude-opus-4-6    │ 847      │ 12.4M      │ $38.21   │ 79.9%   │
-│ claude-sonnet-4    │ 234      │ 3.1M       │ $6.42    │ 13.4%   │
-│ claude-haiku-4-5   │ 89       │ 1.2M       │ $0.94    │ 2.0%    │
-│ gpt-4.1-mini       │ 156      │ 2.8M       │ $2.25    │ 4.7%    │
-└────────────────────┴──────────┴────────────┴──────────┴─────────┘
+📊 COST DISTRIBUTION
+   Top 10 messages (9%): $4.91 (43% of total spend)
+   Median message: $0.07
+   Average message: $0.10
+   → Most messages are cheap. A few expensive context-heavy turns dominate.
 
-📊 CACHE EFFICIENCY
-   Cache reads:      45.2% of input tokens
-   Cache savings:    ~$12.40 saved via caching
-   Without cache:    ~$60.22 (you're saving 21%)
+⏰ HOURLY SPEND
+   04:00 █            $0.13
+   11:00 ████         $2.18
+   12:00 ██████████   $9.15 ← peak
 
-📈 DAILY TREND (last 14 days)
-   Apr 4  ████████████████████ $3.21
-   Apr 3  ████████████         $1.89
-   Apr 2  ██████               $0.94
-   ...
-
-💡 WHAT-IF: Same usage on other providers
-┌────────────────────┬────────────┬─────────────┬──────────┐
-│ Provider/Model     │ Monthly    │ vs Current  │ Quality  │
-├────────────────────┼────────────┼─────────────┼──────────┤
-│ Your actual mix    │ $43.50     │ baseline    │ —        │
-│ All GPT-4o         │ $28.40     │ -$15.10     │ ~same    │
-│ All Gemini Pro     │ $14.20     │ -$29.30     │ slight ↓ │
-│ All Claude Sonnet  │ $18.90     │ -$24.60     │ slight ↓ │
-│ All GPT-4o-mini    │ $1.82      │ -$41.68     │ ↓↓       │
-│ All Gemini Flash   │ $0.91      │ -$42.59     │ ↓↓↓      │
-│ Hybrid (smart)     │ $8.50      │ -$35.00     │ slight ↓ │
-└────────────────────┴────────────┴─────────────┴──────────┘
+💡 WHAT-IF: Same tokens on other models
+┌─────────────────────┬──────────┬──────────┬──────────┐
+│ Model               │ Cost     │ Savings  │ Quality  │
+├─────────────────────┼──────────┼──────────┼──────────┤
+│ Opus 4 (current)    │ $11.29   │ —        │ ★★★★★    │
+│ Sonnet 4            │ $1.85*   │ $9.44    │ ★★★★     │
+│ GPT-4o              │ $1.53*   │ $9.76    │ ★★★★     │
+│ Gemini 2.5 Pro      │ $0.77*   │ $10.52   │ ★★★★     │
+│ Haiku 3.5           │ $0.15*   │ $11.14   │ ★★★      │
+│ Gemini Flash        │ $0.05*   │ $11.24   │ ★★★      │
+│ Hybrid (smart)      │ $0.52*   │ $10.77   │ ★★★★     │
+└─────────────────────┴──────────┴──────────┴──────────┘
+* Estimated with equivalent cache ratios
 
 🎯 RECOMMENDATION
-   You spend 80% on Opus. If you switched complex tasks (30%)
-   to Sonnet and simple tasks (50%) to Haiku, you'd pay ~$12/mo
-   instead of $43.50 — saving $31.50/month.
+   You're on Opus for everything. Consider:
+   → Switch to Sonnet for routine tasks: save ~$7/day ($210/mo)
+   → Use hybrid routing: save ~$10/day ($300/mo)
+   → Keep Opus only for complex analysis: ~5% of messages
 ```
 
-### Web Dashboard: Visual version
+### Web Dashboard (port 5055)
 
-Same data, but visual. Charts, trends, interactive model comparison.
+**Page 1: Overview**
+- Big number: today's spend + trend
+- Donut chart: model mix
+- Line chart: daily cost over time
+- Cache efficiency gauge
+
+**Page 2: Cost Analysis**
+- Message cost histogram (most messages are cheap, long tail of expensive ones)
+- Hourly heatmap
+- Session cost ranking table
+- Context growth curve per session
+
+**Page 3: What-If Comparison**
+- Interactive: select any model → see recalculated cost
+- Side-by-side: your actual vs alternative
+- Hybrid routing simulator: drag slider for simple/complex split
+- Monthly projection at each option
+
+**Page 4: Session Detail**
+- Click any session → see per-message cost timeline
+- Identify the expensive turns
+- Show what model would be cheapest for each message
+- Context window growth visualization
 
 ---
 
-## V1 File Structure (Simplified)
+## V1 Tech Implementation
 
+### Data Source
+OpenClaw session JSONL files at `~/.openclaw/agents/*/sessions/*.jsonl`
+
+Each assistant message contains:
+```json
+{
+  "usage": {
+    "input": 3,
+    "output": 142,
+    "cacheRead": 8841973,
+    "cacheWrite": 859036,
+    "totalTokens": 23475,
+    "cost": {
+      "input": 0.000015,
+      "output": 0.00355,
+      "cacheRead": 0,
+      "cacheWrite": 0.14581,
+      "total": 0.14937
+    }
+  }
+}
+```
+
+### File Structure (V1)
 ```
 openclaw-usages/
-├── README.md                  # What this is, how to use it
-├── PLAN.md                    # This file
+├── README.md
+├── PLAN.md
 ├── cli/
 │   ├── package.json
-│   ├── src/
-│   │   ├── index.js           # Entry: openclaw-usage analyze [options]
-│   │   ├── parser.js          # Parse JSONL session files → usage records
-│   │   ├── analyzer.js        # Aggregate: by model, by day, totals
-│   │   ├── comparator.js      # What-if: same tokens on other providers
-│   │   ├── renderer.js        # CLI output: tables, charts, colors
-│   │   └── pricing.js         # Provider pricing data (April 2026)
-│   └── README.md
+│   └── src/
+│       ├── index.js          # Entry: analyze, compare, export
+│       ├── parser.js         # Parse JSONL → usage records
+│       ├── analyzer.js       # Aggregate by model/day/session/hour
+│       ├── comparator.js     # What-if repricing on other models
+│       ├── renderer.js       # CLI tables + charts
+│       └── pricing.js        # Provider pricing data
 ├── web/
 │   ├── package.json
-│   ├── vite.config.js
+│   ├── vite.config.js        # Port 5055
 │   ├── index.html
 │   └── src/
 │       ├── main.jsx
-│       ├── App.jsx + .css
+│       ├── App.jsx
 │       ├── lib/
-│       │   ├── parser.js      # Same logic as CLI (shared or duplicated)
+│       │   ├── parser.js     # Same parsing logic
 │       │   ├── analyzer.js
+│       │   ├── comparator.js
 │       │   └── pricing.js
-│       └── components/
-│           ├── FileUpload.jsx + .css    # Drop/select JSONL files
-│           ├── Summary.jsx + .css       # Top-line numbers
-│           ├── ModelBreakdown.jsx + .css # Table + pie chart
-│           ├── DailyTrend.jsx + .css    # Bar chart over time
-│           ├── Comparison.jsx + .css    # What-if table
-│           └── CacheStats.jsx + .css    # Cache efficiency
-└── docs/                      # Keep existing docs (reference)
+│       └── pages/
+│           ├── Overview.jsx      # Top-line + trends
+│           ├── CostAnalysis.jsx  # Distribution + heatmap
+│           ├── Comparison.jsx    # What-if models
+│           └── SessionDetail.jsx # Per-session drill-down
+└── docs/                     # Keep existing
 ```
+
+### Key Metrics to Surface
+
+| Metric | What it tells you | Why it matters |
+|--------|------------------|---------------|
+| Total daily cost | Am I overspending? | Budget awareness |
+| Cache efficiency % | How much caching saves | Architecture decision |
+| Top N messages % of cost | Are a few turns expensive? | Identify optimization targets |
+| Model mix | Am I using the right models? | Switch recommendation |
+| Context growth rate | How fast does cost grow per session? | Session length optimization |
+| Cost per useful output token | Efficiency ratio | Compare models fairly |
+| Projected monthly | What's my trajectory? | Financial planning |
 
 ---
 
-## V1 Commands
+## Phase 2: SWITCH (V2 — After V1 ships)
 
-### `openclaw-usage analyze` (primary)
+### Features
+- **Model selector per session** — one click to switch from Opus to Sonnet
+- **Smart routing rules** — "use Opus for code review, Sonnet for chat, Haiku for reformatting"
+- **A/B tracking** — run same workload on two models, compare cost + quality
+- **Session templates** — preset configs for different task types
+- **Budget limits** — "stop me at $5/day" with model downgrade fallback
 
-```
-Usage: openclaw-usage analyze [options]
-
-Analyze your actual OpenClaw usage from session data.
-
-Options:
-  -p, --path <path>      Path to sessions dir (default: ~/.openclaw/agents/main/sessions)
-  -d, --days <number>    Number of days to analyze (default: 30)
-  -a, --agent <name>     Agent name (default: main)
-  --all-agents           Analyze all agents
-  --json                 Output as JSON
-  --csv                  Export as CSV
-  -v, --verbose          Show per-session breakdown
-```
-
-### `openclaw-usage compare` (secondary)
-
-```
-Usage: openclaw-usage compare [options]
-
-Compare your actual usage costs against alternative providers.
-
-Options:
-  -p, --path <path>      Path to sessions dir
-  -d, --days <number>    Days to analyze (default: 30)
-  --model <model>        Compare against specific model
-  --json                 Output as JSON
-```
-
-### `openclaw-usage export` (utility)
-
-```
-Usage: openclaw-usage export [options]
-
-Export usage data as JSON or CSV for external analysis.
-
-Options:
-  -p, --path <path>      Path to sessions dir
-  -d, --days <number>    Days to export
-  -o, --output <file>    Output file (default: stdout)
-  -f, --format <fmt>     Format: json, csv (default: json)
-```
+### Revenue
+- Pro tier: $9/month
+- Unlocks: smart routing, A/B tracking, budget automation, unlimited history
 
 ---
 
-## V1 Web Dashboard
+## Phase 3: OPTIMIZE (V3 — Future)
 
-Instead of a calculator with hypothetical inputs, the web version:
+### Features
+- **Prompt waste detection** — "this prompt sends 50K tokens of context but only uses 2K"
+- **Auto-compact suggestions** — "summarize this context to save 80% of tokens"
+- **Redundancy alerts** — "you're sending the same file content 15 times in this session"
+- **Caching strategy advisor** — "restructure prompts to maximize cache hits"
+- **Token budget per message** — enforce limits on verbose outputs
 
-1. **File Upload** — User drops their JSONL session files (or pastes a directory path)
-2. **Auto-analyze** — Parse and display immediately
-3. **Dashboard** — Summary, model breakdown, daily trends, comparison
-4. **Privacy** — Everything runs client-side. No data leaves the browser.
-
-### Key difference from current POC:
-- Current: "Enter your estimated messages per day" → guess-based
-- New: "Upload your actual session data" → fact-based
-
----
-
-## Implementation Steps
-
-### Step 1: Parser (`parser.js`)
-- Read JSONL files from sessions directory
-- Extract messages with `type: "message"` and `message.role: "assistant"`
-- Pull: timestamp, provider, model, usage.input, usage.output, usage.cacheRead, usage.cacheWrite, usage.cost.total
-- Handle edge cases: missing fields, partial records, non-assistant messages
-- Filter by date range
-
-### Step 2: Analyzer (`analyzer.js`)
-- Aggregate by model: total messages, tokens, cost, % of spend
-- Aggregate by day: daily cost, daily tokens
-- Aggregate by session: cost per session
-- Calculate cache efficiency: cacheRead / (input + cacheRead) ratio
-- Calculate averages: per-day, per-message, projected monthly
-
-### Step 3: Comparator (`comparator.js`)
-- Take actual token usage per message
-- Recalculate: "if this exact message was sent to Model X, what would it cost?"
-- Use actual input/output token counts (not estimates)
-- Calculate hybrid routing cost: classify by token count (large = complex, small = simple)
-- Show savings per model
-
-### Step 4: Renderer (`renderer.js`)
-- CLI tables with chalk + cli-table3
-- Sparkline-style daily trend using bar characters
-- Color-coded savings (green = cheaper, red = more expensive)
-- Summary card at top
-
-### Step 5: Web Dashboard
-- React components consuming same parser/analyzer logic
-- File upload component (drag & drop JSONL files)
-- Summary cards, bar charts, comparison table
-- All client-side — no server needed
-- Export button for JSON/CSV
+### Revenue
+- Premium tier: $29/month
+- Unlocks: prompt analysis, auto-optimization, token budgets, API access
 
 ---
 
-## What Gets Cut (from current POC)
+## Success Metrics
 
-- ❌ `migrate` command (future feature: "switch modes")
-- ❌ `rollback` command (future)
-- ❌ `config` command (future)
-- ❌ `upgrade` / Pro tier (future)
-- ❌ Hypothetical calculator inputs (replaced with real data)
-- ❌ Affiliate links, upsells, monetization UI (future)
-- ❌ Budget alerts (future)
-- ❌ All docs/ and research/ (keep for reference but not the product)
+### V1 (Understand)
+- Accurate cost reporting matching actual provider bills (±5%)
+- < 3 seconds to analyze 200 sessions
+- Users say "I didn't know X was costing me Y"
+- 500 installs in first month
 
----
+### V2 (Switch)
+- Average user saves 40%+ on monthly cost
+- 10% free→Pro conversion
+- $900 MRR from 100 Pro users
 
-## What Stays
-
-- ✅ Pricing data for all providers (pricing.js — already solid)
-- ✅ Dark theme web UI (already looks good)
-- ✅ CLI table rendering approach
-- ✅ Project structure / build tooling
-
----
-
-## Success Criteria (V1)
-
-1. **Run `openclaw-usage analyze` on a real OpenClaw install → get accurate report** ← the only thing that matters
-2. Output matches actual provider billing (within 5% tolerance)
-3. Comparison shows realistic alternatives
-4. Web version works with uploaded files
-5. < 5 seconds to analyze 175 sessions
-
----
-
-## Next Feature (V2): Switch Modes
-
-After "understand usage" is sharp, the next feature is:
-- Recommend optimal model for each query type
-- One-command model switch in OpenClaw config
-- A/B tracking: compare performance before/after switch
-- "Smart mode" that auto-routes based on query complexity
-
-**But that's V2. V1 is UNDERSTAND ONLY.**
+### V3 (Optimize)
+- Additional 20% savings on top of model switching
+- 5% Pro→Premium conversion
+- $6,500 MRR combined
