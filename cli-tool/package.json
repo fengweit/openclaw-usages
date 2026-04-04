@@ -1,0 +1,33 @@
+{
+  "name": "openclaw-usage",
+  "version": "1.0.0",
+  "description": "Analyze, optimize, and manage your OpenClaw AI provider costs",
+  "main": "src/index.js",
+  "bin": {
+    "openclaw-usage": "src/index.js"
+  },
+  "scripts": {
+    "start": "node src/index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "openclaw",
+    "ai",
+    "cost-optimization",
+    "cli",
+    "claude",
+    "gpt",
+    "gemini",
+    "migration"
+  ],
+  "author": "Rist (Fengwei Tian)",
+  "license": "MIT",
+  "dependencies": {
+    "chalk": "^4.1.2",
+    "cli-table3": "^0.6.3",
+    "commander": "^11.1.0",
+    "conf": "^11.0.2",
+    "inquirer": "^8.2.6",
+    "ora": "^5.4.1"
+  }
+}

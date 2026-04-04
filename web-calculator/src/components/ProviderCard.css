@@ -1,0 +1,146 @@
+.provider-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 1rem;
+  transition: border-color 0.15s, transform 0.15s;
+  position: relative;
+}
+
+.provider-card:hover {
+  border-color: var(--text-muted);
+  transform: translateY(-2px);
+}
+
+.provider-card.current {
+  border-color: var(--accent-orange);
+}
+
+.provider-card.cheapest {
+  border-color: var(--accent-green);
+}
+
+/* Badges */
+.card-badges {
+  display: flex;
+  gap: 0.35rem;
+  margin-bottom: 0.5rem;
+  min-height: 22px;
+}
+
+.badge {
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 20px;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+}
+
+.badge-current {
+  background: rgba(245, 158, 11, 0.2);
+  color: var(--accent-orange);
+}
+
+.badge-cheapest {
+  background: rgba(16, 185, 129, 0.2);
+  color: var(--accent-green);
+}
+
+.badge-value {
+  background: rgba(59, 130, 246, 0.2);
+  color: var(--accent-blue);
+}
+
+/* Header */
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 0.75rem;
+}
+
+.card-provider {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.card-model {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.card-tier {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  background: var(--bg-card);
+  padding: 2px 8px;
+  border-radius: 4px;
+  text-transform: capitalize;
+}
+
+/* Cost */
+.card-cost {
+  margin-bottom: 0.75rem;
+}
+
+.cost-amount {
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.cost-period {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+/* Quality Bar */
+.card-quality {
+  margin-bottom: 0.75rem;
+}
+
+.quality-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-bottom: 0.25rem;
+}
+
+.quality-bar-bg {
+  height: 4px;
+  background: var(--border);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.quality-bar-fill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.3s;
+}
+
+/* Savings */
+.card-savings {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--accent-green);
+  margin-bottom: 0.5rem;
+}
+
+/* Pricing Details */
+.card-pricing {
+  border-top: 1px solid var(--border);
+  padding-top: 0.5rem;
+}
+
+.pricing-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  padding: 0.1rem 0;
+}

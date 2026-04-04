@@ -1,0 +1,131 @@
+.cost-chart {
+  padding: 1rem 0;
+}
+
+.chart-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.75rem;
+  gap: 1rem;
+}
+
+.chart-row.current {
+  background: rgba(74, 158, 255, 0.1);
+  margin-left: -1rem;
+  margin-right: -1rem;
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius-sm);
+}
+
+.chart-label {
+  width: 140px;
+  flex-shrink: 0;
+}
+
+.chart-model {
+  display: block;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.chart-provider {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.chart-bar-container {
+  flex: 1;
+  height: 28px;
+  background: var(--bg-secondary);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.chart-bar {
+  height: 100%;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-right: 8px;
+  min-width: 60px;
+  transition: width 0.3s ease;
+}
+
+.chart-bar.bar-green {
+  background: linear-gradient(90deg, #00d4aa 0%, #00e8bb 100%);
+}
+
+.chart-bar.bar-yellow {
+  background: linear-gradient(90deg, #f0a500 0%, #ffd700 100%);
+}
+
+.chart-bar.bar-red {
+  background: linear-gradient(90deg, #ff4757 0%, #ff6b7a 100%);
+}
+
+.chart-value {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--bg-primary);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.chart-legend {
+  display: flex;
+  gap: 1.5rem;
+  justify-content: center;
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.legend-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+}
+
+.legend-dot.bar-green {
+  background: var(--accent-green);
+}
+
+.legend-dot.bar-yellow {
+  background: var(--accent-yellow);
+}
+
+.legend-dot.bar-red {
+  background: var(--accent-red);
+}
+
+@media (max-width: 600px) {
+  .chart-label {
+    width: 100px;
+  }
+  
+  .chart-model {
+    font-size: 0.8rem;
+  }
+  
+  .chart-value {
+    font-size: 0.7rem;
+  }
+  
+  .chart-legend {
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+}
