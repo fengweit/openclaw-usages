@@ -1,217 +1,168 @@
 /**
- * AI Provider Pricing Data — April 2026
- * Prices are per 1 million tokens
+ * AI Provider Pricing & Calculator Logic
+ * April 2026 pricing data — all prices in USD per million tokens
  */
+
 export const PROVIDERS = {
-  anthropic: {
-    name: 'Anthropic',
-    models: {
-      'claude-opus': {
-        name: 'Claude Opus',
-        inputPrice: 15.00,
-        outputPrice: 75.00,
-        quality: { coding: 5, chat: 5, analysis: 5, creative: 5 },
-        description: 'Most capable model, best for complex reasoning',
-      },
-      'claude-sonnet': {
-        name: 'Claude Sonnet',
-        inputPrice: 3.00,
-        outputPrice: 15.00,
-        quality: { coding: 5, chat: 4, analysis: 4, creative: 4 },
-        description: 'Excellent balance of capability and cost',
-      },
-      'claude-haiku': {
-        name: 'Claude Haiku',
-        inputPrice: 0.25,
-        outputPrice: 1.25,
-        quality: { coding: 3, chat: 4, analysis: 3, creative: 3 },
-        description: 'Fast and affordable for simple tasks',
-      },
-    },
+  'claude-opus': {
+    name: 'Claude Opus 4',
+    provider: 'Anthropic',
+    input: 15.0,
+    output: 75.0,
+    tier: 'premium',
+    color: '#d97706',
+    quality: { coding: 98, chat: 95, analysis: 97, creative: 96 },
   },
-  openai: {
-    name: 'OpenAI',
-    models: {
-      'gpt-4o': {
-        name: 'GPT-4o',
-        inputPrice: 2.50,
-        outputPrice: 10.00,
-        quality: { coding: 4, chat: 5, analysis: 4, creative: 4 },
-        description: 'Flagship multimodal model',
-      },
-      'gpt-4o-mini': {
-        name: 'GPT-4o-mini',
-        inputPrice: 0.15,
-        outputPrice: 0.60,
-        quality: { coding: 3, chat: 4, analysis: 3, creative: 3 },
-        description: 'Cost-effective for most use cases',
-      },
-      'gpt-4-turbo': {
-        name: 'GPT-4 Turbo',
-        inputPrice: 10.00,
-        outputPrice: 30.00,
-        quality: { coding: 4, chat: 4, analysis: 5, creative: 4 },
-        description: 'High capability with large context window',
-      },
-    },
+  'claude-sonnet': {
+    name: 'Claude Sonnet 4',
+    provider: 'Anthropic',
+    input: 3.0,
+    output: 15.0,
+    tier: 'standard',
+    color: '#d97706',
+    quality: { coding: 90, chat: 88, analysis: 91, creative: 89 },
   },
-  google: {
-    name: 'Google',
-    models: {
-      'gemini-pro': {
-        name: 'Gemini Pro',
-        inputPrice: 1.25,
-        outputPrice: 5.00,
-        quality: { coding: 4, chat: 4, analysis: 4, creative: 3 },
-        description: 'Strong general-purpose model',
-      },
-      'gemini-flash': {
-        name: 'Gemini Flash',
-        inputPrice: 0.075,
-        outputPrice: 0.30,
-        quality: { coding: 3, chat: 3, analysis: 3, creative: 2 },
-        description: 'Ultra-fast, great for high-volume workloads',
-      },
-      'gemini-flash-8b': {
-        name: 'Gemini Flash-8B',
-        inputPrice: 0.0375,
-        outputPrice: 0.15,
-        quality: { coding: 2, chat: 2, analysis: 2, creative: 1 },
-        description: 'Cheapest option, suitable for simple tasks',
-      },
-    },
+  'claude-haiku': {
+    name: 'Claude Haiku 3.5',
+    provider: 'Anthropic',
+    input: 0.25,
+    output: 1.25,
+    tier: 'budget',
+    color: '#d97706',
+    quality: { coding: 72, chat: 78, analysis: 70, creative: 68 },
   },
-}
+  'gpt-4o': {
+    name: 'GPT-4o',
+    provider: 'OpenAI',
+    input: 2.5,
+    output: 10.0,
+    tier: 'standard',
+    color: '#10b981',
+    quality: { coding: 91, chat: 90, analysis: 89, creative: 87 },
+  },
+  'gpt-4o-mini': {
+    name: 'GPT-4o Mini',
+    provider: 'OpenAI',
+    input: 0.15,
+    output: 0.6,
+    tier: 'budget',
+    color: '#10b981',
+    quality: { coding: 75, chat: 80, analysis: 73, creative: 70 },
+  },
+  'gpt-4-turbo': {
+    name: 'GPT-4 Turbo',
+    provider: 'OpenAI',
+    input: 10.0,
+    output: 30.0,
+    tier: 'premium',
+    color: '#10b981',
+    quality: { coding: 93, chat: 91, analysis: 92, creative: 90 },
+  },
+  'gemini-pro': {
+    name: 'Gemini 2.5 Pro',
+    provider: 'Google',
+    input: 1.25,
+    output: 5.0,
+    tier: 'standard',
+    color: '#3b82f6',
+    quality: { coding: 89, chat: 86, analysis: 90, creative: 84 },
+  },
+  'gemini-flash': {
+    name: 'Gemini 2.0 Flash',
+    provider: 'Google',
+    input: 0.075,
+    output: 0.3,
+    tier: 'budget',
+    color: '#3b82f6',
+    quality: { coding: 74, chat: 76, analysis: 72, creative: 65 },
+  },
+  'gemini-flash-8b': {
+    name: 'Gemini Flash 8B',
+    provider: 'Google',
+    input: 0.0375,
+    output: 0.15,
+    tier: 'economy',
+    color: '#3b82f6',
+    quality: { coding: 60, chat: 65, analysis: 58, creative: 55 },
+  },
+};
 
 /**
- * Token estimates by message length
- */
-const TOKEN_ESTIMATES = {
-  short: 500,
-  medium: 1500,
-  long: 4000
-}
-
-/**
- * Calculate cost for a given model and token usage
+ * Calculate cost for a model given token usage
  */
 export function calculateCost(modelKey, inputTokens, outputTokens) {
-  const model = getModel(modelKey)
-  if (!model) return 0
-  
-  const inputCost = (inputTokens / 1_000_000) * model.inputPrice
-  const outputCost = (outputTokens / 1_000_000) * model.outputPrice
-  return inputCost + outputCost
-}
+  const model = PROVIDERS[modelKey];
+  if (!model) return { cost: 0, input: 0, output: 0 };
 
-/**
- * Get model by key
- */
-export function getModel(modelKey) {
-  for (const provider of Object.values(PROVIDERS)) {
-    if (provider.models[modelKey]) {
-      return provider.models[modelKey]
-    }
-  }
-  return null
-}
+  const inputCost = (inputTokens / 1_000_000) * model.input;
+  const outputCost = (outputTokens / 1_000_000) * model.output;
 
-/**
- * Get provider name for a model key
- */
-export function getProviderName(modelKey) {
-  for (const [, provider] of Object.entries(PROVIDERS)) {
-    if (provider.models[modelKey]) {
-      return provider.name
-    }
-  }
-  return null
-}
-
-/**
- * Calculate all costs based on user inputs
- */
-export function calculateAllCosts(inputs) {
-  const { messagesPerDay, messageLength, useCase, currentProvider } = inputs
-  
-  // Calculate token usage
-  const tokensPerMessage = TOKEN_ESTIMATES[messageLength] || 1500
-  const monthlyTokens = messagesPerDay * 30 * tokensPerMessage
-  const monthlyInputTokens = Math.round(monthlyTokens * 0.6)  // 60% input
-  const monthlyOutputTokens = Math.round(monthlyTokens * 0.4)  // 40% output
-  
-  // Calculate costs for all models
-  const costs = []
-  
-  for (const [providerKey, provider] of Object.entries(PROVIDERS)) {
-    for (const [modelKey, model] of Object.entries(provider.models)) {
-      const monthlyCost = calculateCost(modelKey, monthlyInputTokens, monthlyOutputTokens)
-      
-      costs.push({
-        provider: provider.name,
-        providerKey,
-        model: model.name,
-        modelKey,
-        monthlyCost: Math.round(monthlyCost * 100) / 100,
-        inputPrice: model.inputPrice,
-        outputPrice: model.outputPrice,
-        quality: model.quality,
-        description: model.description,
-      })
-    }
-  }
-  
-  // Sort by cost
-  costs.sort((a, b) => a.monthlyCost - b.monthlyCost)
-  
-  // Find current cost
-  const currentModel = costs.find(c => c.modelKey === currentProvider)
-  const currentCost = currentModel?.monthlyCost || null
-  
-  // Find cheapest
-  const cheapest = costs[0]
-  
-  // Find recommended (good quality + reasonable cost)
-  const recommended = costs.find(c => {
-    const qualityScore = c.quality[useCase] || 3
-    return qualityScore >= 4 && c.monthlyCost <= (costs[Math.floor(costs.length / 2)]?.monthlyCost || Infinity)
-  }) || costs.find(c => (c.quality[useCase] || 3) >= 4) || cheapest
-  
-  // Max cost for chart scaling
-  const maxCost = Math.max(...costs.map(c => c.monthlyCost))
-  
   return {
-    costs,
-    currentCost,
+    cost: inputCost + outputCost,
+    input: inputCost,
+    output: outputCost,
+  };
+}
+
+/**
+ * Calculate costs for all providers given usage and use case
+ */
+export function calculateAllCosts(usage, useCase = 'coding') {
+  const results = Object.entries(PROVIDERS).map(([key, model]) => {
+    const costs = calculateCost(key, usage.monthlyInput, usage.monthlyOutput);
+    return {
+      key,
+      ...model,
+      monthlyCost: costs.cost,
+      inputCost: costs.input,
+      outputCost: costs.output,
+      qualityScore: model.quality[useCase] || model.quality.coding,
+    };
+  });
+
+  return results.sort((a, b) => a.monthlyCost - b.monthlyCost);
+}
+
+/**
+ * Calculate hybrid routing cost estimate (70% budget, 30% premium)
+ */
+export function calculateHybridCost(usage) {
+  const budgetUsage = {
+    monthlyInput: Math.round(usage.monthlyInput * 0.7),
+    monthlyOutput: Math.round(usage.monthlyOutput * 0.7),
+  };
+  const premiumUsage = {
+    monthlyInput: Math.round(usage.monthlyInput * 0.3),
+    monthlyOutput: Math.round(usage.monthlyOutput * 0.3),
+  };
+
+  const budget = calculateCost('gemini-flash', budgetUsage.monthlyInput, budgetUsage.monthlyOutput);
+  const premium = calculateCost('claude-sonnet', premiumUsage.monthlyInput, premiumUsage.monthlyOutput);
+
+  return {
+    monthlyCost: budget.cost + premium.cost,
+    budgetModel: 'Gemini 2.0 Flash',
+    premiumModel: 'Claude Sonnet 4',
+    qualityScore: 85,
+  };
+}
+
+/**
+ * Get recommendation based on results and current provider
+ */
+export function getRecommendation(costs, currentProviderKey) {
+  const current = costs.find((c) => c.key === currentProviderKey);
+  const cheapest = costs[0];
+  const bestValue = costs.find((c) => c.qualityScore >= 85 && c.tier === 'standard');
+
+  const currentCost = current ? current.monthlyCost : 0;
+  const maxSavings = currentCost - cheapest.monthlyCost;
+
+  return {
     cheapest,
-    recommended,
-    maxCost,
-    usage: {
-      monthlyInputTokens,
-      monthlyOutputTokens,
-      monthlyTokens,
-      messagesPerMonth: messagesPerDay * 30
-    }
-  }
-}
-
-/**
- * Format currency for display
- */
-export function formatCurrency(amount) {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2
-  }).format(amount)
-}
-
-/**
- * Format large numbers
- */
-export function formatNumber(num) {
-  if (num >= 1_000_000) return (num / 1_000_000).toFixed(1) + 'M'
-  if (num >= 1_000) return (num / 1_000).toFixed(1) + 'K'
-  return num.toString()
+    bestValue: bestValue || cheapest,
+    current,
+    maxSavings,
+    maxSavingsPercent: currentCost > 0 ? ((maxSavings / currentCost) * 100).toFixed(1) : '0',
+  };
 }

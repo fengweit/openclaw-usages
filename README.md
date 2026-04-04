@@ -1,314 +1,223 @@
-# PROJECT COMPLETE: OpenClaw Crisis Opportunity
+# OpenClaw Usage Analyzer
 
-**Created:** April 5, 2026 
-**Status:** Ready to Build & Launch 
-**Timeline:** 7 days (April 6-12, 2026)
+Understand exactly how you're using OpenClaw — real data, not guesswork.
+
+**Status:** POC (v0.1) — Web cost calculator live, CLI analyzer planned  
+**Repo:** [github.com/fengweit/openclaw-usages](https://github.com/fengweit/openclaw-usages)
 
 ---
 
-## ✅ WHAT'S BEEN CREATED
+## What's Working Now
 
-### 📚 Complete Documentation (8 Files)
+### 🌐 Web Cost Calculator (POC)
 
-1. **README.md** - Master project overview with quick start
-2. **docs/01-CRISIS-ANALYSIS.md** - Full crisis timeline, user segments, market analysis
-3. **docs/02-ARCHITECTURAL-GAPS.md** - 8 technical gaps with business opportunities
-4. **docs/03-PRODUCT-SPECS.md** - Detailed specs for CLI tool + Web calculator
-5. **docs/04-REVENUE-MODEL.md** - 5 revenue streams, pricing, projections
-6. **docs/05-BUILD-PLAN.md** - Hour-by-hour 7-day development plan
-7. **docs/06-LAUNCH-STRATEGY.md** - Multi-channel distribution strategy
-8. **research/RESEARCH-SUMMARY.md** - All 20+ agent findings synthesized
+A React app that lets you compare AI provider costs interactively.
 
-### 💻 CLI Tool (Full Codebase)
-
-**Location:** `cli-tool/`
-
-**Files Created:**
-- `package.json` - Dependencies and scripts
-- `src/index.js` - Main CLI entry point
-- `src/commands/optimize.js` - Cost analysis & comparison
-- `src/commands/migrate.js` - Provider migration automation
-- `src/commands/stats.js` - Usage statistics dashboard
-- `src/commands/rollback.js` - Config rollback
-- `src/commands/config.js` - Settings management
-- `src/commands/upgrade.js` - Pro tier upgrade flow
-- `src/lib/pricing.js` - Pricing data & calculations
-- `README.md` - Complete documentation
+**URL:** `http://localhost:3000` (when dev server is running)
 
 **Features:**
-✓ Interactive cost analysis 
-✓ Single-provider migration (GPT-4, Gemini, Claude) 
-✓ Hybrid routing (Pro feature) 
-✓ Cost tracking & analytics 
-✓ Budget alerts 
-✓ Rollback capability 
+- Interactive messages/day slider (5–500)
+- Message length toggle (short ~500 tokens / medium ~2K / long ~5K)
+- Use case selector (coding, chat, analysis, creative)
+- Current provider dropdown (9 models across Anthropic, OpenAI, Google)
+- Real-time cost comparison bar chart
+- Provider cards with quality scores and savings percentages
+- Hybrid routing preview (70% budget model + 30% premium model)
+- Dark theme, responsive layout
 
-**Free Tier:**
-- Basic cost analysis
-- Single-provider migration
-- 7-day cost tracking
+**How to run:**
+```bash
+cd web-calculator
+npm install
+npm run dev
+# Opens http://localhost:3000
+```
 
-**Pro Tier ($9/month):**
-- Hybrid multi-provider routing
-- Unlimited cost tracking
-- Custom routing rules
-- Budget alerts
-- Advanced analytics
+**Limitations (POC):**
+- Based on estimated usage (user inputs), not real data
+- Quality scores are approximate
+- No data persistence
 
-### 🌐 Web Calculator (Full Codebase)
+### 💻 CLI Tool (POC)
 
-**Location:** `web-calculator/`
+A Node.js CLI with cost analysis and migration commands.
 
-**Files Created:**
-- `package.json` - React dependencies
-- `src/App.js` - Main application
-- `src/App.css` - Global styles
-- `src/components/Calculator.js` - Input form
-- `src/components/Calculator.css` - Form styles
-- `src/components/Results.js` - Results display
-- `src/components/Results.css` - Results styles
-- `src/components/ProviderCard.js` - Provider card component
-- `src/components/ProviderCard.css` - Card styles
-- `src/components/CostChart.js` - Bar chart visualization
-- `src/components/CostChart.css` - Chart styles
-- `src/lib/calculator.js` - Pricing logic
-- `README.md` - Complete documentation
+**Commands available:**
+```bash
+cd cli-tool && npm install
 
-**Features:**
-✓ Interactive cost calculator 
-✓ Real-time cost comparisons 
-✓ Quality scores by use case 
-✓ Visual bar charts 
-✓ Personalized recommendations 
-✓ Hybrid approach preview 
-✓ Affiliate link integration 
-✓ Premium report upsell 
+# Compare costs across all providers
+node src/index.js optimize
 
-**Monetization:**
-- Affiliate commissions (free users)
-- Premium reports ($9)
-- CLI tool upsell
+# Interactive migration wizard
+node src/index.js migrate
+
+# Usage statistics dashboard (demo data)
+node src/index.js stats
+
+# View/edit settings
+node src/index.js config
+
+# Rollback to previous config
+node src/index.js rollback
+
+# Pro tier upgrade flow
+node src/index.js upgrade
+```
+
+**`optimize` command:**
+- Asks your current model, daily messages, message complexity
+- Shows cost comparison table across 9 models
+- Highlights cheapest option and best value
+- Shows hybrid routing savings estimate
+
+**`stats` command:**
+- Displays demo data dashboard (no real tracking yet)
+- Daily/weekly/monthly breakdown with cost trends
+- Model usage breakdown
+- Budget status
+
+**`migrate` command:**
+- Detects OpenClaw config at `~/.openclaw/config.yaml`
+- Interactive provider/model selection
+- Auto-backup before migration
+- Writes new config and validates
+
+### 📚 Documentation
+
+Full project documentation in `docs/`:
+
+| File | Contents |
+|------|----------|
+| `docs/01-CRISIS-ANALYSIS.md` | Crisis timeline, user segments, market size |
+| `docs/02-ARCHITECTURAL-GAPS.md` | 8 technical gaps = business opportunities |
+| `docs/03-PRODUCT-SPECS.md` | CLI and web calculator specifications |
+| `docs/04-REVENUE-MODEL.md` | 5 revenue streams with projections |
+| `docs/05-BUILD-PLAN.md` | 7-day build schedule |
+| `docs/06-LAUNCH-STRATEGY.md` | Reddit, Twitter, HN, Discord, YouTube launch plan |
+| `research/RESEARCH-SUMMARY.md` | Market research synthesis |
 
 ---
 
-## 🎯 REVENUE PROJECTIONS
+## What's Next (V1 — Real Usage Analysis)
 
-### Week 1 (April 6-12)
-```
-CLI Tool:
- Affiliate conversions: $500
- Pro upgrades: $90 (10 users × $9)
- Premium add-ons: $290
+The POC uses estimated/hypothetical inputs. **V1 will parse your actual OpenClaw session data** instead.
 
-Web Calculator:
- Affiliate conversions: $350
- Premium reports: $180 (20 × $9)
+See [PLAN.md](./PLAN.md) for the full V1 specification.
 
-TOTAL WEEK 1: ~$1,410
-```
+### The key insight
 
-### Month 1
-```
-CLI Tool:
- Affiliates: $2,500
- Pro MRR: $900 (100 users)
- Add-ons: $1,500
-
-Web Calculator:
- Affiliates: $3,500
- Reports: $1,800
-
-TOTAL MONTH 1: ~$10,200
-MRR: $900
+OpenClaw stores per-message usage in `~/.openclaw/agents/*/sessions/*.jsonl`:
+```json
+{
+  "type": "message",
+  "message": {
+    "role": "assistant",
+    "provider": "anthropic",
+    "model": "claude-opus-4-6",
+    "usage": {
+      "input": 3,
+      "output": 142,
+      "cacheRead": 0,
+      "cacheWrite": 23330,
+      "totalTokens": 23475,
+      "cost": { "total": 0.14937 }
+    }
+  }
+}
 ```
 
-### Month 3 (With Gateway)
+V1 will parse this data to show:
+- **Actual spend** by model, by day, by session
+- **Cache efficiency** — how much caching is saving you
+- **What-if comparisons** — same real tokens priced on other providers
+- **Smart recommendations** — which queries could use cheaper models
+
+### V1 Commands (planned)
+
+```bash
+# Analyze your actual OpenClaw usage
+openclaw-usage analyze              # Last 30 days
+openclaw-usage analyze --days 7     # Last week
+openclaw-usage analyze --all-agents # All agents, not just main
+
+# Compare actual costs against alternatives
+openclaw-usage compare              # What-if on all providers
+openclaw-usage compare --model gpt-4o  # Specific model
+
+# Export raw data
+openclaw-usage export --format csv -o usage.csv
 ```
-All streams: $15,000
-MRR: $6,450
- - Pro: $4,500 (500 users)
- - Gateway: $1,950 (50 users × $39 avg)
-```
+
+### V1 Web Dashboard (planned)
+
+- Drag & drop JSONL files (or auto-detect local path)
+- All processing client-side (no data leaves the browser)
+- Summary cards, model breakdown charts, daily trend bars
+- Interactive what-if comparison
 
 ---
 
-## 📅 7-DAY BUILD SCHEDULE
+## Project Structure
 
-### Day 1 (April 6): Foundation
-- ✅ CLI tool structure created
-- ✅ Web calculator structure created 
-- ✅ Pricing logic implemented
-- **TODO:** Test both locally
-
-### Day 2 (April 7): Core Features
-- **TODO:** Build migration logic (CLI)
-- **TODO:** Polish calculator UI (Web)
-- **TODO:** Test migration flows
-
-### Day 3 (April 8): Premium Features
-- **TODO:** Hybrid routing logic
-- **TODO:** Premium report generator
-- **TODO:** License validation
-
-### Day 4 (April 9): Monitoring & Analytics
-- **TODO:** Cost tracking implementation
-- **TODO:** Stats dashboard
-- **TODO:** Analytics integration
-
-### Day 5 (April 10): Payments & Polish
-- **TODO:** Stripe integration
-- **TODO:** Gumroad setup
-- **TODO:** UI/UX polish
-
-### Day 6 (April 11): Testing & Docs
-- **TODO:** End-to-end testing
-- **TODO:** Documentation review
-- **TODO:** Demo video recording
-
-### Day 7 (April 12): LAUNCH
-- **TODO:** Publish CLI to npm
-- **TODO:** Deploy web to Vercel
-- **TODO:** Reddit/Twitter/HN posts
-- **TODO:** Reply to Theo's thread
-
----
-
-## 🚀 IMMEDIATE NEXT STEPS
-
-### Tonight (April 5, 8pm-12am):
-1. ✅ Review all documentation
-2. ✅ Set up development environment
-3. **TODO:** Initialize git repos
-4. **TODO:** Test CLI commands locally
-5. **TODO:** Test web calculator locally
-
-### Tomorrow Morning (April 6, 8am):
-1. **TODO:** Start Day 1 tasks
-2. **TODO:** Set up Stripe test account
-3. **TODO:** Register domain (optional)
-4. **TODO:** Create GitHub repos
-
----
-
-## 📂 FILE LOCATIONS
-
-All files are in:
 ```
-/home/claude/openclaw-crisis-opportunity/
-├── README.md
-├── docs/
+openclaw-usages/
+├── README.md              ← You are here
+├── PLAN.md                ← V1 detailed specification
+├── cli-tool/              ← CLI tool (POC)
+│   ├── package.json
+│   ├── README.md
+│   └── src/
+│       ├── index.js       # Entry point (commander)
+│       ├── commands/
+│       │   ├── optimize.js   # Cost comparison
+│       │   ├── migrate.js    # Provider migration
+│       │   ├── stats.js      # Usage dashboard
+│       │   ├── rollback.js   # Config rollback
+│       │   ├── config.js     # Settings
+│       │   └── upgrade.js    # Pro tier
+│       └── lib/
+│           └── pricing.js    # Provider pricing data
+├── web-calculator/        ← Web app (POC)
+│   ├── package.json
+│   ├── vite.config.js
+│   ├── index.html
+│   ├── README.md
+│   └── src/
+│       ├── main.jsx
+│       ├── App.jsx + .css
+│       ├── lib/
+│       │   └── calculator.js  # Pricing & calculation logic
+│       └── components/
+│           ├── Calculator.jsx + .css   # Input form
+│           ├── Results.jsx + .css      # Results container
+│           ├── ProviderCard.jsx + .css  # Provider cost cards
+│           └── CostChart.jsx + .css    # Bar chart
+├── docs/                  ← Project documentation
 │   ├── 01-CRISIS-ANALYSIS.md
 │   ├── 02-ARCHITECTURAL-GAPS.md
 │   ├── 03-PRODUCT-SPECS.md
 │   ├── 04-REVENUE-MODEL.md
 │   ├── 05-BUILD-PLAN.md
 │   └── 06-LAUNCH-STRATEGY.md
-├── research/
-│   └── RESEARCH-SUMMARY.md
-├── cli-tool/
-│   ├── package.json
-│   ├── README.md
-│   └── src/
-│       ├── index.js
-│       ├── commands/
-│       └── lib/
-└── web-calculator/
-    ├── package.json
-    ├── README.md
-    └── src/
-        ├── App.js
-        ├── components/
-        └── lib/
+└── research/
+    └── RESEARCH-SUMMARY.md
 ```
 
----
+## Supported Providers (Pricing Data)
 
-## 🎯 SUCCESS CRITERIA
+| Provider | Model | Input $/M | Output $/M | Tier |
+|----------|-------|-----------|------------|------|
+| Anthropic | Claude Opus 4 | $15.00 | $75.00 | Premium |
+| Anthropic | Claude Sonnet 4 | $3.00 | $15.00 | Standard |
+| Anthropic | Claude Haiku 3.5 | $0.25 | $1.25 | Budget |
+| OpenAI | GPT-4o | $2.50 | $10.00 | Standard |
+| OpenAI | GPT-4o Mini | $0.15 | $0.60 | Budget |
+| OpenAI | GPT-4 Turbo | $10.00 | $30.00 | Premium |
+| Google | Gemini 2.5 Pro | $1.25 | $5.00 | Standard |
+| Google | Gemini 2.0 Flash | $0.075 | $0.30 | Budget |
+| Google | Gemini Flash 8B | $0.0375 | $0.15 | Economy |
 
-### Minimum (Week 1):
-- [ ] 50 CLI installs
-- [ ] 200 web visits
-- [ ] 1 paying customer
-- [ ] $100 revenue
+## License
 
-### Target (Week 1):
-- [ ] 200 CLI installs
-- [ ] 1,000 web visits
-- [ ] 10 paying customers
-- [ ] $500 revenue
-
-### Stretch (Week 1):
-- [ ] 500 CLI installs
-- [ ] 5,000 web visits
-- [ ] 50 paying customers
-- [ ] $2,000 revenue
-
----
-
-## 🔑 KEY INSIGHTS
-
-### What Makes This Work:
-
-1. **Perfect Timing** - Crisis happening RIGHT NOW (April 4-7)
-2. **Real Pain** - 250K users' systems broke overnight
-3. **Clear Value** - Save $50-100/month vs pure Claude
-4. **Easy Decision** - $9/mo vs $98/mo savings = 10x ROI
-5. **Fast Execution** - 7 days to market vs competitors' weeks
-
-### What Could Go Wrong:
-
-1. **Competition Moves Fast** - Mitigation: Ship THIS WEEK
-2. **Market Too Small** - Mitigation: Expand to general AI cost optimization
-3. **Can't Convert Free→Paid** - Mitigation: Clear value prop, limit free features
-4. **Quality Issues** - Mitigation: Over-test, fast fixes, great support
-
-### Competitive Advantages:
-
-1. **Speed** - Shipping in 7 days vs competitors' weeks/months
-2. **Focus** - Solving ONE problem well vs enterprise complexity
-3. **Price** - $9-29/mo vs NemoClaw's enterprise pricing
-4. **Distribution** - Direct to community (Reddit, Discord, Twitter)
-
----
-
-## 📋 PRE-LAUNCH CHECKLIST
-
-### Development:
-- [ ] CLI tool working end-to-end
-- [ ] Web calculator deployed
-- [ ] Payments integration tested
-- [ ] Analytics tracking live
-
-### Marketing:
-- [ ] Landing page ready
-- [ ] Demo video recorded
-- [ ] Screenshots captured
-- [ ] Social media posts written
-- [ ] Reddit posts drafted
-
-### Operations:
-- [ ] Support email set up
-- [ ] Discord server created
-- [ ] GitHub repos public
-- [ ] Documentation complete
-
----
-
-## 💪 YOU'RE READY TO BUILD
-
-**Everything you need is documented.**
-**All code is scaffolded.**
-**The market is waiting.**
-
-**Now execute.**
-
-Week 1 target: $1,000-2,000 revenue 
-Month 1 target: $10,000 revenue + $900 MRR 
-Month 3 target: $6,500 MRR 
-
-**The crisis is NOW. Ship by April 12. Win the week.**
-
----
-
-*Built by Rist (Fengwei Tian) for the OpenClaw community.*
-*All materials ready to move to your GitHub repo.*
+MIT — [Fengwei Tian](https://github.com/fengweit)
