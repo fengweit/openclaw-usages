@@ -49,10 +49,89 @@ def find_sessions_dir():
     return None
 
 
+def extract_content_summary(content, max_len=150):
+    """Extract a human-readable summary from message content blocks."""
+    if isinstance(content, str):
+        return content[:max_len]
+    if not isinstance(content, list):
+        return ""
+
+    parts = []
+    tool_calls = []
+    for block in content:
+        if not isinstance(block, dict):
+            continue
+        btype = block.get("type", "")
+        if btype == "text":
+            text = block.get("text", "").strip()
+            if text:
+                parts.append(text[:max_len])
+        elif btype == "toolCall":
+            name = block.get("name", "unknown")
+            args = block.get("arguments", block.get("input", {}))
+            # Summarize the tool call
+            if isinstance(args, dict):
+                if "file_path" in args or "path" in args:
+                    target = args.get("file_path") or args.get("path", "")
+                    tool_calls.append(f"{name}({target.split('/')[-1] if target else ''})")
+                elif "command" in args:
+                    cmd = args["command"][:60]
+                    tool_calls.append(f"{name}(`{cmd}`)")
+                elif "query" in args:
+                    tool_calls.append(f"{name}({args['query'][:40]})")
+                elif "url" in args:
+                    tool_calls.append(f"{name}({args['url'][:40]})")
+                else:
+                    tool_calls.append(name)
+            else:
+                tool_calls.append(name)
+
+    summary = ""
+    if parts:
+        summary = parts[0][:max_len]
+    if tool_calls:
+        tools_str = ", ".join(tool_calls[:5])
+        if summary:
+            summary += f" [tools: {tools_str}]"
+        else:
+            summary = f"[tools: {tools_str}]"
+    return summary or "(no text content)"
+
+
+def extract_user_prompt(content, max_len=120):
+    """Extract the user's question/prompt from a user message."""
+    if isinstance(content, str):
+        # Strip openclaw metadata blocks
+        lines = content.split("\n")
+        clean = []
+        in_meta = False
+        for line in lines:
+            if "```json" in line or "Conversation info" in line or "Sender (untrusted" in line:
+                in_meta = True
+                continue
+            if in_meta and line.strip() == "```":
+                in_meta = False
+                continue
+            if not in_meta and line.strip():
+                clean.append(line.strip())
+        return " ".join(clean)[:max_len] if clean else ""
+
+    if not isinstance(content, list):
+        return ""
+
+    for block in content:
+        if isinstance(block, dict) and block.get("type") == "text":
+            text = block.get("text", "")
+            # Strip metadata envelope
+            return extract_user_prompt(text, max_len)
+    return ""
+
+
 def parse_session_file(filepath):
     """Parse a single JSONL session file, extract assistant message usage."""
     messages = []
     session_meta = {}
+    last_user_content = None
     try:
         with open(filepath) as f:
             for line in f:
@@ -66,9 +145,34 @@ def parse_session_file(filepath):
 
                 if obj.get("type") == "message":
                     msg = obj.get("message", {})
-                    if msg.get("role") == "assistant" and "usage" in msg:
+                    role = msg.get("role", "")
+
+                    # Track user messages
+                    if role != "assistant":
+                        content = msg.get("content", "")
+                        last_user_content = content
+                        continue
+
+                    if "usage" in msg:
                         usage = msg["usage"]
                         cost = usage.get("cost", {})
+
+                        # Extract content summary
+                        content = msg.get("content", [])
+                        response_summary = extract_content_summary(content)
+
+                        # Extract user prompt that triggered this
+                        user_prompt = extract_user_prompt(last_user_content) if last_user_content else ""
+
+                        # Determine cost driver
+                        cost_parts = {
+                            "cache_write": cost.get("cacheWrite", 0),
+                            "output": cost.get("output", 0),
+                            "cache_read": cost.get("cacheRead", 0),
+                            "input": cost.get("input", 0),
+                        }
+                        cost_driver = max(cost_parts, key=cost_parts.get) if any(cost_parts.values()) else "unknown"
+
                         messages.append({
                             "timestamp": obj.get("timestamp", ""),
                             "model": msg.get("model", "unknown"),
@@ -83,6 +187,9 @@ def parse_session_file(filepath):
                             "cost_output": cost.get("output", 0),
                             "cost_cache_read": cost.get("cacheRead", 0),
                             "cost_cache_write": cost.get("cacheWrite", 0),
+                            "response_summary": response_summary,
+                            "user_prompt": user_prompt,
+                            "cost_driver": cost_driver,
                         })
     except Exception as e:
         pass
@@ -307,6 +414,37 @@ def render_text(r):
         stars = "★" * w["quality"] + "☆" * (5 - w["quality"])
         sav = f"-{w['savings_pct']:.0f}%" if w["savings"] > 0 else ""
         lines.append(f"   {w['model']:<22} {fmt_cost(w['cost']):>8}  {sav:>10}  {stars}")
+    lines.append("")
+
+    # Top expensive messages with context
+    lines.append("🔍 TOP EXPENSIVE MESSAGES")
+    cost_driver_labels = {
+        "cache_write": "📝 new context loaded",
+        "output": "📤 large response",
+        "cache_read": "🗄️ cache read",
+        "input": "📥 large prompt",
+    }
+    for i, m in enumerate(r["top_messages"][:10], 1):
+        driver = cost_driver_labels.get(m.get("cost_driver", ""), "")
+        lines.append(f"   #{i} {fmt_cost(m['cost'])} — {m['model']} · {driver}")
+        if m.get("user_prompt"):
+            prompt = m["user_prompt"][:100]
+            lines.append(f"      ❓ \"{prompt}\"")
+        if m.get("response_summary"):
+            resp = m["response_summary"][:100]
+            lines.append(f"      💬 {resp}")
+        # Token breakdown
+        parts = []
+        if m.get("cache_write", 0) > 0:
+            parts.append(f"{fmt_tokens(m['cache_write'])} cache write")
+        if m.get("output", 0) > 0:
+            parts.append(f"{fmt_tokens(m['output'])} out")
+        if m.get("cache_read", 0) > 0:
+            parts.append(f"{fmt_tokens(m['cache_read'])} cached")
+        lines.append(f"      [{' · '.join(parts)}]")
+        if m.get("session_label"):
+            lines.append(f"      Session: {m['session_label'][:40]}")
+        lines.append("")
     lines.append("")
 
     # Top sessions

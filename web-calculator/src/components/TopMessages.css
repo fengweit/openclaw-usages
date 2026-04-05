@@ -21,7 +21,7 @@
 }
 
 .msg-list {
-  max-height: 70vh;
+  max-height: 75vh;
   overflow-y: auto;
 }
 
@@ -29,8 +29,8 @@
   display: flex;
   align-items: flex-start;
   gap: 0.75rem;
-  padding: 0.75rem 1.25rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
   transition: background 0.1s;
 }
 
@@ -39,65 +39,153 @@
 }
 
 .msg-rank {
-  font-size: 0.8rem;
+  font-size: 0.85rem;
   font-weight: 700;
   color: var(--text-muted);
-  min-width: 28px;
+  min-width: 30px;
   padding-top: 2px;
 }
 
 .msg-detail {
   flex: 1;
   min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
 }
 
 .msg-top {
   display: flex;
   gap: 0.5rem;
   align-items: center;
-  margin-bottom: 0.2rem;
+  flex-wrap: wrap;
 }
 
 .msg-model {
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   font-weight: 600;
-  padding: 1px 6px;
+  padding: 2px 7px;
   background: rgba(139, 92, 246, 0.15);
   color: var(--accent-purple);
   border-radius: 3px;
 }
 
+.msg-driver {
+  font-size: 0.7rem;
+  font-weight: 500;
+  padding: 2px 7px;
+  border-radius: 3px;
+}
+
+.msg-driver.cache_write {
+  background: rgba(245, 158, 11, 0.12);
+  color: #f59e0b;
+}
+
+.msg-driver.output {
+  background: rgba(59, 130, 246, 0.12);
+  color: var(--accent-blue);
+}
+
+.msg-driver.cache_read {
+  background: rgba(16, 185, 129, 0.12);
+  color: var(--accent-green);
+}
+
+.msg-driver.input {
+  background: rgba(239, 68, 68, 0.12);
+  color: var(--accent-red);
+}
+
 .msg-time {
-  font-size: 0.7rem;
+  font-size: 0.65rem;
   color: var(--text-muted);
+  margin-left: auto;
 }
 
-.msg-tokens {
-  font-size: 0.75rem;
+/* User prompt */
+.msg-prompt {
+  font-size: 0.8rem;
+  line-height: 1.4;
+}
+
+.prompt-label {
+  color: var(--text-muted);
+  margin-right: 0.25rem;
+}
+
+.prompt-text {
   color: var(--text-secondary);
-  margin-bottom: 0.15rem;
-}
-
-.msg-tokens .sep {
-  margin: 0 0.25rem;
-  opacity: 0.3;
-}
-
-.msg-breakdown {
-  font-size: 0.7rem;
-  color: var(--text-muted);
-}
-
-.msg-session {
-  font-size: 0.7rem;
-  color: var(--text-muted);
-  margin-top: 0.15rem;
   font-style: italic;
 }
 
+/* Response summary */
+.msg-response {
+  font-size: 0.8rem;
+  line-height: 1.4;
+}
+
+.response-label {
+  color: var(--text-muted);
+  margin-right: 0.25rem;
+}
+
+.response-text {
+  color: var(--text-secondary);
+}
+
+/* Token breakdown tags */
+.msg-tokens {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.token-tag {
+  font-size: 0.65rem;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-variant-numeric: tabular-nums;
+}
+
+.token-tag.write {
+  background: rgba(245, 158, 11, 0.08);
+  color: #f59e0b;
+}
+
+.token-tag.output {
+  background: rgba(59, 130, 246, 0.08);
+  color: var(--accent-blue);
+}
+
+.token-tag.read {
+  background: rgba(16, 185, 129, 0.08);
+  color: var(--accent-green);
+}
+
+.token-tag.input {
+  background: rgba(239, 68, 68, 0.08);
+  color: var(--accent-red);
+}
+
+/* Why explanation */
+.msg-why {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  padding: 3px 0;
+  font-style: italic;
+}
+
+.msg-session {
+  font-size: 0.65rem;
+  color: var(--text-muted);
+}
+
 .msg-cost {
-  font-size: 1rem;
+  font-size: 1.1rem;
   font-weight: 700;
   white-space: nowrap;
   padding-top: 2px;
+  min-width: 55px;
+  text-align: right;
 }

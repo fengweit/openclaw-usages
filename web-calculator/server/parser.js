@@ -21,6 +21,7 @@ async function parseSessionFile(filePath) {
 
   let sessionMeta = null;
   let modelInfo = null;
+  let lastUserContent = null;
 
   for await (const line of rl) {
     try {
@@ -43,9 +44,31 @@ async function parseSessionFile(filePath) {
 
       if (obj.type === 'message') {
         const msg = obj.message || {};
-        if (msg.role === 'assistant' && msg.usage) {
+
+        // Track user messages for context
+        if (msg.role !== 'assistant') {
+          lastUserContent = msg.content;
+          continue;
+        }
+
+        if (msg.usage) {
           const usage = msg.usage;
           const cost = usage.cost || {};
+
+          // Extract content summary
+          const responseSummary = extractContentSummary(msg.content);
+          const userPrompt = extractUserPrompt(lastUserContent);
+
+          // Determine cost driver
+          const costParts = {
+            cache_write: cost.cacheWrite || 0,
+            output: cost.output || 0,
+            cache_read: cost.cacheRead || 0,
+            input: cost.input || 0,
+          };
+          const costDriver = Object.entries(costParts)
+            .sort((a, b) => b[1] - a[1])[0]?.[0] || 'unknown';
+
           messages.push({
             id: obj.id,
             timestamp: obj.timestamp,
@@ -63,6 +86,9 @@ async function parseSessionFile(filePath) {
               cacheWrite: cost.cacheWrite || 0,
               total: cost.total || 0,
             },
+            responseSummary,
+            userPrompt,
+            costDriver,
           });
         }
       }
@@ -72,6 +98,85 @@ async function parseSessionFile(filePath) {
   }
 
   return { sessionMeta, messages };
+}
+
+/**
+ * Extract a readable summary from assistant message content
+ */
+function extractContentSummary(content, maxLen = 150) {
+  if (typeof content === 'string') return content.slice(0, maxLen);
+  if (!Array.isArray(content)) return '';
+
+  const parts = [];
+  const toolCalls = [];
+
+  for (const block of content) {
+    if (!block || typeof block !== 'object') continue;
+    if (block.type === 'text' && block.text?.trim()) {
+      parts.push(block.text.trim().slice(0, maxLen));
+    } else if (block.type === 'toolCall') {
+      const name = block.name || 'unknown';
+      const args = block.arguments || block.input || {};
+      if (args.file_path || args.path) {
+        const p = args.file_path || args.path;
+        toolCalls.push(`${name}(${p.split('/').pop()})`);
+      } else if (args.command) {
+        toolCalls.push(`${name}(\`${args.command.slice(0, 50)}\`)`);
+      } else if (args.query) {
+        toolCalls.push(`${name}(${args.query.slice(0, 40)})`);
+      } else if (args.url) {
+        toolCalls.push(`${name}(${args.url.slice(0, 40)})`);
+      } else {
+        toolCalls.push(name);
+      }
+    }
+  }
+
+  let summary = parts[0]?.slice(0, maxLen) || '';
+  if (toolCalls.length) {
+    const tools = toolCalls.slice(0, 5).join(', ');
+    summary = summary ? `${summary} [tools: ${tools}]` : `[tools: ${tools}]`;
+  }
+  return summary || '(no text content)';
+}
+
+/**
+ * Extract the user's prompt from a user message, stripping OpenClaw metadata
+ */
+function extractUserPrompt(content, maxLen = 120) {
+  if (!content) return '';
+
+  let text = '';
+  if (typeof content === 'string') {
+    text = content;
+  } else if (Array.isArray(content)) {
+    for (const block of content) {
+      if (block?.type === 'text' && block.text) {
+        text = block.text;
+        break;
+      }
+    }
+  }
+  if (!text) return '';
+
+  // Strip OpenClaw metadata envelope
+  const lines = text.split('\n');
+  const clean = [];
+  let inMeta = false;
+  for (const line of lines) {
+    if (line.includes('```json') || line.includes('Conversation info') || line.includes('Sender (untrusted')) {
+      inMeta = true;
+      continue;
+    }
+    if (inMeta && line.trim() === '```') {
+      inMeta = false;
+      continue;
+    }
+    if (!inMeta && line.trim()) {
+      clean.push(line.trim());
+    }
+  }
+  return clean.join(' ').slice(0, maxLen);
 }
 
 /**
